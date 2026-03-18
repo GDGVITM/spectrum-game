@@ -114,6 +114,40 @@ export default function IntroScreen({ gameState }) {
           {LYRICS.substring(0, subtitleChar)}
         </div>
       )}
+
+      {/* Skip Intro Button */}
+      <div
+        onClick={() => gameState.setScreen("tutorial")}
+        style={{
+          position: "absolute",
+          bottom: "30px",
+          right: "30px",
+          padding: "10px 20px",
+          backgroundColor: "rgba(0, 0, 0, 0.7)",
+          border: "2px solid #fff",
+          color: "#fff",
+          fontFamily: "'Noto Sans JP', sans-serif",
+          fontSize: "14px",
+          fontWeight: "900",
+          cursor: "pointer",
+          borderRadius: "4px",
+          zIndex: 100,
+          transition: "all 0.2s",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#fff";
+          e.currentTarget.style.color = "#000";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+          e.currentTarget.style.color = "#fff";
+        }}
+      >
+        SKIP INTRO ➔
+      </div>
     </div>
   );
 }

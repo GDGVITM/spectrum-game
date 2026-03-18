@@ -77,6 +77,25 @@ export function useSound() {
     playNote(659.25, t + 0.3);
   }, []);
 
+  const fightMusicRef = useRef(null);
+
+  const startFightMusic = useCallback(() => {
+    if (fightMusicRef.current) return;
+    const audio = new Audio("/assets/fight.ogg");
+    audio.loop = true;
+    audio.volume = 0.4;
+    audio.play().catch((e) => console.log("Audio play failed:", e));
+    fightMusicRef.current = audio;
+  }, []);
+
+  const stopFightMusic = useCallback(() => {
+    if (fightMusicRef.current) {
+      fightMusicRef.current.pause();
+      fightMusicRef.current.currentTime = 0;
+      fightMusicRef.current = null;
+    }
+  }, []);
+
   const ambientWindRef = useRef(null);
 
   const startAmbientWind = useCallback(() => {
@@ -116,7 +135,15 @@ export function useSound() {
     }
   }, []);
 
-  return { swordClash, enemyDeath, victory, startAmbientWind, stopAmbientWind };
+  return {
+    swordClash,
+    enemyDeath,
+    victory,
+    startAmbientWind,
+    stopAmbientWind,
+    startFightMusic,
+    stopFightMusic,
+  };
 }
 
 // Keep old name for backwards compatibility

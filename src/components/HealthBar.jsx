@@ -10,6 +10,7 @@ export default function HealthBar({
   maxHp = 100,
   hp = 100,
   color = "green",
+  style = {},
 }) {
   const [displayHp, setDisplayHp] = useState(hp);
   const lastHpRef = useRef(hp);
@@ -28,25 +29,42 @@ export default function HealthBar({
     return () => cancelAnimationFrame(animationId);
   }, [hp, displayHp]);
 
-  const fillWidth = Math.max(0, (displayHp / maxHp) * (width - 4));
+  const fillWidth = Math.max(0, (displayHp / maxHp) * width);
   const colorClass = color === "enemy" ? "enemy" : "";
+  const isEnemy = color === "enemy";
 
   return (
     <div
       style={{
-        position: "absolute",
-        left: `${x}px`,
-        top: `${y}px`,
+        position: x !== undefined || y !== undefined ? "absolute" : "relative",
+        left: x !== undefined ? `${x}px` : undefined,
+        top: y !== undefined ? `${y}px` : undefined,
         width: `${width}px`,
         height: `${height}px`,
+        backgroundColor: "#222",
+        overflow: "hidden",
+        border: "none",
+        clipPath: isEnemy
+          ? "polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%)"
+          : "polygon(0% 0%, 100% 0%, 92% 100%, 0% 100%)",
+        ...style,
       }}
-      className="health-bar">
+      className="health-bar-container">
       <div
-        className={`health-bar-fill ${colorClass}`}
         style={{
-          width: `${fillWidth}px`,
-        }}
-      />
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          justifyContent: isEnemy ? "flex-end" : "flex-start",
+        }}>
+        <div
+          className={`health-bar-fill ${colorClass}`}
+          style={{
+            width: `${fillWidth}px`,
+            height: "100%",
+          }}
+        />
+      </div>
     </div>
   );
 }
