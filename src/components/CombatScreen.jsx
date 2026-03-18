@@ -13,6 +13,7 @@ export default function CombatScreen({ gameState, sounds }) {
   const [slashActive, setSlashActive] = useState(false);
   const [flashWhite, setFlashWhite] = useState(false);
   const [screenDarken, setScreenDarken] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
   const [slashPos, setSlashPos] = useState({ x: 0, y: 0 });
   const [showAttackPopup, setShowAttackPopup] = useState(false);
   const cleanupRef = useRef(false);
@@ -115,7 +116,7 @@ export default function CombatScreen({ gameState, sounds }) {
   // Handle attacking animation
   useEffect(() => {
     if (gameState.phase === "attacking" && playerPhase.startsWith("attack")) {
-      sounds.swordClash();
+      sounds.swordSlice();
 
       // Slash effect
       setSlashActive(true);
@@ -125,7 +126,14 @@ export default function CombatScreen({ gameState, sounds }) {
       setTimeout(() => setSlashActive(false), 300);
       setTimeout(() => setFlashWhite(false), 200);
 
-      gameState.doDamage(25);
+      
+        gameState.doDamage(25);
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 300);
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+      sounds.enemyHit();
 
       if (gameState.enemyHP <= 25) {
         sounds.enemyDeath();
@@ -164,6 +172,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
   return (
     <div
+      className={isShaking ? "screen-shake" : ""}
       style={{
         position: "relative",
         width: "100%",
