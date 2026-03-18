@@ -46,6 +46,21 @@ export function useSound() {
     [],
   );
 
+  const swordSlice = useCallback(() => {
+    const audio = new Audio("/assets/sword-slice.mp3");
+    audio.volume = 0.5;
+    audio.play().catch(e => console.log("Audio play failed:", e));
+  }, []);
+
+  const enemyHit = useCallback(() => {
+    const hit = new Audio("/assets/hit.mp3");
+    const argh = new Audio("/assets/argh.mp3");
+    hit.volume = 0.5;
+    argh.volume = 0.6;
+    hit.play().catch(e => console.log("hit play failed:", e));
+    argh.play().catch(e => console.log("argh play failed:", e));
+  }, []);
+
   const swordClash = useCallback(() => {
     playTone("sawtooth", 440, 200, 0.15, 0.2);
   }, [playTone]);
@@ -96,6 +111,18 @@ export function useSound() {
     }
   }, []);
 
+  const pauseFightMusic = useCallback(() => {
+    if (fightMusicRef.current) {
+      fightMusicRef.current.pause();
+    }
+  }, []);
+
+  const resumeFightMusic = useCallback(() => {
+    if (fightMusicRef.current) {
+      fightMusicRef.current.play().catch((e) => console.log(e));
+    }
+  }, []);
+
   const ambientWindRef = useRef(null);
 
   const startAmbientWind = useCallback(() => {
@@ -136,6 +163,8 @@ export function useSound() {
   }, []);
 
   return {
+    swordSlice,
+    enemyHit,
     swordClash,
     enemyDeath,
     victory,
@@ -143,6 +172,8 @@ export function useSound() {
     stopAmbientWind,
     startFightMusic,
     stopFightMusic,
+    pauseFightMusic,
+    resumeFightMusic,
   };
 }
 
