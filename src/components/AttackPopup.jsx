@@ -23,8 +23,7 @@ export default function AttackPopup({ visible, onClose }) {
         transition: "transform 0.3s ease-out",
         pointerEvents: visible ? "auto" : "none",
         zIndex: 100,
-      }}
-    >
+      }}>
       <div
         style={{
           backgroundColor: "rgba(13, 17, 23, 0.95)",
@@ -34,18 +33,17 @@ export default function AttackPopup({ visible, onClose }) {
           textAlign: "center",
           boxShadow: "0 0 20px rgba(255, 215, 0, 0.5)",
           minWidth: "300px",
-        }}
-      >
+        }}>
         <div
           style={{
             fontFamily: '"Press Start 2P", cursive',
             fontSize: "24px",
             color: "#ffd700",
-            textShadow: "2px 2px 0px #ff1493, 4px 4px 0px rgba(255, 215, 0, 0.3)",
+            textShadow:
+              "2px 2px 0px #ff1493, 4px 4px 0px rgba(255, 215, 0, 0.3)",
             letterSpacing: "2px",
             animation: visible ? "pulse 0.6s ease-in-out infinite" : "none",
-          }}
-        >
+          }}>
           CLICK TO ATTACK
         </div>
       </div>

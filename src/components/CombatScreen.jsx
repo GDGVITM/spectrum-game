@@ -19,7 +19,12 @@ export default function CombatScreen({ gameState, sounds }) {
   const animationFrameRef = useRef(null);
 
   useEffect(() => {
-    console.log("🎮 CombatScreen mounted/updated - gamePhase:", gameState.phase, "playerPhase:", playerPhase);
+    console.log(
+      "🎮 CombatScreen mounted/updated - gamePhase:",
+      gameState.phase,
+      "playerPhase:",
+      playerPhase,
+    );
   }, [gameState.phase, playerPhase]);
 
   useEffect(() => {
@@ -34,7 +39,10 @@ export default function CombatScreen({ gameState, sounds }) {
 
   // Transition from idle to readyToAttack after animation finishes
   useEffect(() => {
-    console.log("🎯 Checking readyToAttack condition:", { gameStatePhase: gameState.phase, playerPhase });
+    console.log("🎯 Checking readyToAttack condition:", {
+      gameStatePhase: gameState.phase,
+      playerPhase,
+    });
     if (gameState.phase === "idle" && playerPhase === "idle") {
       console.log("✅ Both idle! Setting readyToAttack in 2000ms");
       const timer = setTimeout(() => {
@@ -155,22 +163,23 @@ export default function CombatScreen({ gameState, sounds }) {
         overflow: "hidden",
         cursor: gameState.phase === "readyToAttack" ? "pointer" : "default",
       }}
-      onClick={handleClick}
-    >
+      onClick={handleClick}>
       <Background />
 
       {/* DEBUG: Show current phase */}
-      <div style={{
-        position: "absolute",
-        top: "100px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        fontSize: "20px",
-        fontFamily: "monospace",
-        color: "#00ff00",
-        zIndex: 200,
-      }}>
-        Phase: {gameState.phase} | PopupVisible: {showAttackPopup ? "YES" : "NO"}
+      <div
+        style={{
+          position: "absolute",
+          top: "100px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontSize: "20px",
+          fontFamily: "monospace",
+          color: "#00ff00",
+          zIndex: 200,
+        }}>
+        Phase: {gameState.phase} | PopupVisible:{" "}
+        {showAttackPopup ? "YES" : "NO"}
       </div>
 
       <HealthBar
@@ -203,8 +212,7 @@ export default function CombatScreen({ gameState, sounds }) {
           height: "100%",
           filter: gameState.phase === "death" ? "grayscale(1)" : "none",
           transition: "filter 0.5s ease-out",
-        }}
-      >
+        }}>
         <EnemySprite
           x={680}
           y={290}
@@ -213,7 +221,10 @@ export default function CombatScreen({ gameState, sounds }) {
         />
       </div>
 
-      <AttackPopup visible={showAttackPopup} onClose={() => setShowAttackPopup(false)} />
+      <AttackPopup
+        visible={showAttackPopup}
+        onClose={() => setShowAttackPopup(false)}
+      />
 
       {slashActive && (
         <div
