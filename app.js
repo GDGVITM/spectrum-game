@@ -1,0 +1,2 @@
+import puppeteer from 'puppeteer';
+(async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); page.on('console', msg => console.log('BROWSER:', msg.text())); await page.goto('http://localhost:5177'); await new Promise(r => setTimeout(r, 2000)); await page.mouse.click(500, 500); await new Promise(r => setTimeout(r, 4000)); await page.mouse.click(500, 500); await new Promise(r => setTimeout(r, 4000)); await page.mouse.click(500, 500); await new Promise(r => setTimeout(r, 6000)); await browser.close(); })();

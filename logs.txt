@@ -1,0 +1,8 @@
+Navigating to http://localhost:5178
+[BROWSER] [vite] connecting...
+[BROWSER] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold
+[BROWSER] [vite] connected.
+[BROWSER] Asset loading error: Event
+[BROWSER] Asset loading error: Event
+Assets done.
+Wait for 20 seconds of logs...
