@@ -44,8 +44,8 @@ export default function HealthBar({
         backgroundColor: "#222",
         overflow: "hidden",
         border: "none",
-        clipPath: isEnemy 
-          ? "polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%)" 
+        clipPath: isEnemy
+          ? "polygon(8% 0%, 100% 0%, 100% 100%, 0% 100%)"
           : "polygon(0% 0%, 100% 0%, 92% 100%, 0% 100%)",
         ...style,
       }}
@@ -56,8 +56,7 @@ export default function HealthBar({
           height: "100%",
           display: "flex",
           justifyContent: isEnemy ? "flex-end" : "flex-start",
-        }}
-      >
+        }}>
         <div
           className={`health-bar-fill ${colorClass}`}
           style={{

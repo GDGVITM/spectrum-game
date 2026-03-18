@@ -168,22 +168,6 @@ export default function CombatScreen({ gameState, sounds }) {
       onClick={handleClick}>
       <Background />
 
-      {/* DEBUG: Show current phase */}
-      <div
-        style={{
-          position: "absolute",
-          top: "100px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          fontSize: "20px",
-          fontFamily: "monospace",
-          color: "#00ff00",
-          zIndex: 200,
-        }}>
-        Phase: {gameState.phase} | PopupVisible:{" "}
-        {showAttackPopup ? "YES" : "NO"}
-      </div>
-
       <div
         style={{
           position: "absolute",
@@ -208,16 +192,23 @@ export default function CombatScreen({ gameState, sounds }) {
             zIndex: 10, // Ensure icon is on TOP
           }}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px", zIndex: 1 }}>
-          <div style={{ 
-            color: "white", 
-            fontSize: "20px", 
-            fontFamily: "'Noto Sans JP', sans-serif", 
-            fontWeight: "bold",
-            textShadow: "2px 2px 4px black", 
-            marginLeft: "30px", // Pushed in to clear icon
-            letterSpacing: "1px"
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            zIndex: 1,
           }}>
+          <div
+            style={{
+              color: "white",
+              fontSize: "20px",
+              fontFamily: "'Noto Sans JP', sans-serif",
+              fontWeight: "bold",
+              textShadow: "2px 2px 4px black",
+              marginLeft: "30px", // Pushed in to clear icon
+              letterSpacing: "1px",
+            }}>
             THE GHOST (YOU)
           </div>
           <HealthBar
@@ -257,16 +248,24 @@ export default function CombatScreen({ gameState, sounds }) {
             zIndex: 10, // Ensure icon is on TOP
           }}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px", alignItems: "flex-end", zIndex: 1 }}>
-          <div style={{ 
-            color: "white", 
-            fontSize: "20px", 
-            fontFamily: "'Noto Sans JP', sans-serif", 
-            fontWeight: "bold",
-            textShadow: "2px 2px 4px black", 
-            marginRight: "40px", // Pushed in to clear icon
-            letterSpacing: "1px"
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            alignItems: "flex-end",
+            zIndex: 1,
           }}>
+          <div
+            style={{
+              color: "white",
+              fontSize: "20px",
+              fontFamily: "'Noto Sans JP', sans-serif",
+              fontWeight: "bold",
+              textShadow: "2px 2px 4px black",
+              marginRight: "40px", // Pushed in to clear icon
+              letterSpacing: "1px",
+            }}>
             SAMURAI COMMANDER
           </div>
           <HealthBar
@@ -302,7 +301,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
       <AttackPopup
         visible={showAttackPopup}
-        onClose={() => setShowAttackPopup(false)}
+        onClick={handleClick}
       />
 
       {slashActive && (

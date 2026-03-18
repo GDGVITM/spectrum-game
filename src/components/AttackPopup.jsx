@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "../game.css";
 
-export default function AttackPopup({ visible, onClose }) {
+export default function AttackPopup({ visible, onClick }) {
   const [scale, setScale] = useState(0);
+  const [isPressed, setIsPressed] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -12,52 +13,57 @@ export default function AttackPopup({ visible, onClose }) {
     }
   }, [visible]);
 
+  const handlePress = () => {
+    if (!visible) return;
+    setIsPressed(true);
+    
+    // Visual feedback delay before triggering
+    setTimeout(() => {
+      setIsPressed(false);
+      if (onClick) onClick();
+    }, 150);
+  };
+
   return (
     <div
+      className="attack-popup-container"
       style={{
         position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: `translate(-50%, -50%) scale(${scale})`,
-        transformOrigin: "center center",
-        transition: "transform 0.3s ease-out",
+        bottom: "40px",
+        right: "40px",
+        transform: `scale(${scale})`,
+        transformOrigin: "bottom right",
+        transition: "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
         pointerEvents: visible ? "auto" : "none",
-        zIndex: 100,
-      }}>
+        zIndex: 1000,
+      }}
+      onMouseDown={handlePress}
+      onTouchStart={handlePress}
+    >
       <div
         style={{
-          backgroundColor: "rgba(13, 17, 23, 0.95)",
-          border: "4px solid #ffd700",
-          borderRadius: "8px",
-          padding: "20px 40px",
-          textAlign: "center",
-          boxShadow: "0 0 20px rgba(255, 215, 0, 0.5)",
-          minWidth: "300px",
-        }}>
-        <div
+          width: "100px",
+          height: "100px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          cursor: "pointer",
+          transform: isPressed ? "scale(0.85)" : "scale(1)",
+          filter: isPressed ? "grayscale(1) brightness(0.6)" : "none",
+          transition: "transform 0.1s ease-out, filter 0.1s ease-out",
+        }}
+      >
+        <img
+          src="/assets/sword_button.png"
+          alt="Attack"
           style={{
-            fontFamily: '"Press Start 2P", cursive',
-            fontSize: "24px",
-            color: "#ffd700",
-            textShadow:
-              "2px 2px 0px #ff1493, 4px 4px 0px rgba(255, 215, 0, 0.3)",
-            letterSpacing: "2px",
-            animation: visible ? "pulse 0.6s ease-in-out infinite" : "none",
-          }}>
-          CLICK TO ATTACK
-        </div>
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            imageRendering: "pixelated",
+          }}
+        />
       </div>
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.6;
-          }
-        }
-      `}</style>
     </div>
   );
 }
