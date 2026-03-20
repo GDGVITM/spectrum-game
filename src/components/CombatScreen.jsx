@@ -332,7 +332,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
     const startX = playerXRef.current;
     const targetX = 730; // Move toward center
-    const runDur = 270; // ms
+    const runDur = 170; // ms
 
     let moveStart = null;
     let moveId;
@@ -533,6 +533,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
   return (
     <div
+      className={shakeClass}
       style={{
         position: "relative",
         width: "100%",
@@ -543,23 +544,6 @@ export default function CombatScreen({ gameState, sounds }) {
       }}
       onClick={handleClick}>
       <Background />
-
-      {/* Shake overlay (doesn't move sprites) */}
-      {shakeClass && (
-        <div
-          className={shakeClass}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-            zIndex: 50,
-            backgroundColor: "transparent",
-          }}
-        />
-      )}
 
       {/* HUD */}
       {!isDead && !isPlayerDead && (
