@@ -14,9 +14,10 @@ export default function IntroScreen({ gameState }) {
 
   const LYRICS =
   "You burned my people. You broke our code. Now you face what remains… the Ghost.";
-  const SUBTITLE_START = 3; // frames to wait before starting subtitles
-  const SUBTITLE_DURATION = 1000; // 30 seconds in frames (60fps)
+  const SUBTITLE_START = 10; // frames to wait before starting subtitles
   const CHAR_SPEED = 5; // frames per character (lower = faster typing)
+  const SUBTITLE_DURATION = LYRICS.length * CHAR_SPEED + 60; // Typewriter time + short hold
+  const INTRO_END_TIME = SUBTITLE_START + SUBTITLE_DURATION;
 
   useEffect(() => {
     cleanupRef.current = false;
@@ -55,11 +56,11 @@ export default function IntroScreen({ gameState }) {
   };
 
   useEffect(() => {
-    if (time > 1800 && !cleanupRef.current) {
+    if (time >= INTRO_END_TIME && !cleanupRef.current) {
       stopIntroAudio();
       gameState.setScreen("tutorial");
     }
-  }, [time, gameState]);
+  }, [time, gameState, INTRO_END_TIME]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -136,7 +137,7 @@ export default function IntroScreen({ gameState }) {
         </div>
       )}
 
-      {time < SUBTITLE_START + SUBTITLE_DURATION && (
+      {time < INTRO_END_TIME && (
         <div
           onClick={handleSkipIntro}
           style={{
