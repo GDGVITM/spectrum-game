@@ -301,7 +301,8 @@ export default function CombatScreen({ gameState, sounds }) {
 
     if (gameState.phase === "readyToAttack" && !busyRef.current) {
       setFreezePlayer(true);
-      idleAttackTimerRef.current = after(3000, () => {
+      const randomDelay = rand(5000, 10000); // Random delay between 5-10 seconds
+      idleAttackTimerRef.current = after(randomDelay, () => {
         if (!mounted.current) return;
         if (gameState.phase !== "readyToAttack") return;
         runEnemyAttack();
@@ -544,6 +545,8 @@ export default function CombatScreen({ gameState, sounds }) {
       }}
       onClick={handleClick}>
       <Background />
+
+      {/* Shake animation is applied to container via className */}
 
       {/* HUD */}
       {!isDead && !isPlayerDead && (
