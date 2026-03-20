@@ -5,6 +5,7 @@ import EnemySprite from "./EnemySprite.jsx";
 import HealthBar from "./HealthBar.jsx";
 import AttackPopup from "./AttackPopup.jsx";
 import "../game.css";
+import { CONFIG } from "../constants/gameConfig.js";
 
 export default function CombatScreen({ gameState, sounds }) {
   const [playerX, setPlayerX] = useState(300);
@@ -132,7 +133,7 @@ export default function CombatScreen({ gameState, sounds }) {
       setTimeout(() => setFlashWhite(false), 200);
 
       
-        gameState.doDamage(25);
+        gameState.doDamage(CONFIG.DAMAGE_PER_HIT);
         setIsShaking(true);
         setTimeout(() => setIsShaking(false), 300);
         if (navigator.vibrate) {
@@ -140,13 +141,13 @@ export default function CombatScreen({ gameState, sounds }) {
         }
       sounds.enemyHit();
 
-      if (gameState.enemyHP <= 25) {
+      if (gameState.enemyHP <= CONFIG.DAMAGE_PER_HIT) {
         sounds.enemyDeath();
       }
 
       setTimeout(() => {
         if (!cleanupRef.current) {
-          if (gameState.enemyHP > 25) {
+          if (gameState.enemyHP > CONFIG.DAMAGE_PER_HIT) {
             setPlayerPhase("idle");
             setEnemyPhase("idle");
             setPlayerX(300); // Reset player position
@@ -245,7 +246,7 @@ export default function CombatScreen({ gameState, sounds }) {
               </div>
               <HealthBar
                 hp={gameState.playerHP}
-                maxHp={100}
+                maxHp={CONFIG.PLAYER_MAX_HP}
                 color="green"
                 width={320}
                 height={22}
@@ -302,7 +303,7 @@ export default function CombatScreen({ gameState, sounds }) {
               </div>
               <HealthBar
                 hp={gameState.enemyHP}
-                maxHp={100}
+                maxHp={CONFIG.ENEMY_MAX_HP}
                 color="enemy"
                 width={320}
                 height={22}

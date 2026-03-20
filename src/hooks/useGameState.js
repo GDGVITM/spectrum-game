@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { CONFIG } from "../constants/gameConfig.js";
 
 const VALID_START_SCREENS = new Set(["loading", "intro"]);
 
@@ -14,8 +15,8 @@ const INITIAL_SCREEN = VALID_START_SCREENS.has(envStartScreen)
 
 const initialState = {
   screen: INITIAL_SCREEN, // "loading" | "intro" | "tutorial" | "combat" | "reward"
-  enemyHP: 100,
-  playerHP: 100,
+  enemyHP: CONFIG.ENEMY_MAX_HP,
+  playerHP: CONFIG.PLAYER_MAX_HP,
   phase: "idle", // "idle" | "readyToAttack" | "running" | "attacking" | "hit" | "death"
   attackType: null, // "attack1" | "attack2" | "attack3"
   clickCount: 0,
