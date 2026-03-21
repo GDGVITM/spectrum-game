@@ -46,6 +46,31 @@ export default function LoadingScreen({ gameState, sounds }) {
         position: "relative",
         overflow: "hidden",
       }}>
+      <div
+        style={{
+          position: "absolute",
+          top: "0",
+          left: "0",
+          width: "170px",
+          height: "58px",
+          overflow: "hidden",
+          zIndex: 20,
+          pointerEvents: "none",
+        }}>
+        <img
+          src="/assets/gdg-logo.png"
+          alt="GDG logo"
+          style={{
+            position: "absolute",
+            top: "-6px",
+            left: "-10px",
+            width: "185px",
+            height: "66px",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+
       <div className="title-text" style={{ marginBottom: "80px" }}>
         SPECTRUM
       </div>
@@ -59,7 +84,7 @@ export default function LoadingScreen({ gameState, sounds }) {
           color: "#ffffff",
           lineHeight: "1.8",
         }}>
-        by GOOGLE DEVELOPER GROUPS VITM
+        by GOOGLE DEVELOPER GROUP VITM
       </div>
 
       <div

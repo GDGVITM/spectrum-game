@@ -598,8 +598,9 @@ export default function CombatScreen({ gameState, sounds }) {
                 hp={gameState.playerHP}
                 maxHp={100}
                 color="green"
-                width={320}
+                width={270}
                 height={22}
+                style={{ marginLeft: "-12px" }}
               />
             </div>
           </div>
@@ -609,7 +610,7 @@ export default function CombatScreen({ gameState, sounds }) {
             style={{
               position: "absolute",
               right: "20px",
-              top: "4px",
+              top: "20px",
               display: "flex",
               flexDirection: "row-reverse",
               alignItems: "center",
@@ -617,8 +618,8 @@ export default function CombatScreen({ gameState, sounds }) {
             }}>
             <div
               style={{
-                width: "160px",
-                height: "160px",
+                width: "128px",
+                height: "128px",
                 backgroundImage: "url('/assets/enemy-icon.png')",
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
@@ -626,7 +627,7 @@ export default function CombatScreen({ gameState, sounds }) {
                 transform: "scaleX(-1)",
                 imageRendering: "pixelated",
                 filter: "drop-shadow(0 0 5px rgba(255,0,0,0.5))",
-                marginLeft: "-40px",
+                marginLeft: "-30px",
                 position: "relative",
                 zIndex: 10,
               }}
@@ -648,14 +649,15 @@ export default function CombatScreen({ gameState, sounds }) {
                   marginRight: "40px",
                   letterSpacing: "1px",
                 }}>
-                SAMURAI COMMANDER
+                KHOTUN KHAN
               </div>
               <HealthBar
                 hp={gameState.enemyHP}
                 maxHp={100}
                 color="enemy"
-                width={320}
+                width={270}
                 height={22}
+                style={{ marginRight: "-12px" }}
               />
             </div>
           </div>

@@ -141,6 +141,31 @@ export default function IntroScreen({ gameState, sounds }) {
       }}>
       <Background />
 
+      <div
+        style={{
+          position: "absolute",
+          top: "0",
+          left: "0",
+          width: "170px",
+          height: "58px",
+          overflow: "hidden",
+          zIndex: 20,
+          pointerEvents: "none",
+        }}>
+        <img
+          src="/assets/gdg-logo.png"
+          alt="GDG logo"
+          style={{
+            position: "absolute",
+            top: "-6px",
+            left: "-10px",
+            width: "185px",
+            height: "66px",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+
       <PlayerSprite
         x={SPRITE_POSITIONS.PLAYER_HOME_X}
         y={SPRITE_POSITIONS.SPRITE_Y}
