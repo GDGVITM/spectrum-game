@@ -4,7 +4,7 @@ import PlayerSprite from "./PlayerSprite.jsx";
 import EnemySprite from "./EnemySprite.jsx";
 import HealthBar from "./HealthBar.jsx";
 import AttackPopup from "./AttackPopup.jsx";
-import { SPRITE_POSITIONS } from "../constants/gameConfig.js";
+import { CONFIG, SPRITE_POSITIONS } from "../constants/gameConfig.js";
 import "../game.css";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ export default function CombatScreen({ gameState, sounds }) {
         setShakeClass("screen-shake");
         after(280, () => setShakeClass(""));
 
-        const eDmg = 14;
+        const eDmg = CONFIG.ENEMY_DAMAGE_PER_HIT;
         gameState.doPlayerDamage(eDmg);
         showDmg(eDmg, "player");
         if (navigator.vibrate) navigator.vibrate(120);
@@ -381,7 +381,7 @@ export default function CombatScreen({ gameState, sounds }) {
         after(300, () => setShakeClass(""));
 
         // Deal damage
-        const dmg = 15;
+        const dmg = CONFIG.PLAYER_DAMAGE_PER_HIT;
         gameState.doDamage(dmg);
         showDmg(dmg, "enemy");
         if (navigator.vibrate) navigator.vibrate(180);
@@ -511,7 +511,7 @@ export default function CombatScreen({ gameState, sounds }) {
               </div>
               <HealthBar
                 hp={gameState.playerHP}
-                maxHp={100}
+                maxHp={CONFIG.PLAYER_MAX_HP}
                 color="green"
                 width={270}
                 height={22}
@@ -568,7 +568,7 @@ export default function CombatScreen({ gameState, sounds }) {
               </div>
               <HealthBar
                 hp={gameState.enemyHP}
-                maxHp={100}
+                maxHp={CONFIG.ENEMY_MAX_HP}
                 color="enemy"
                 width={270}
                 height={22}
