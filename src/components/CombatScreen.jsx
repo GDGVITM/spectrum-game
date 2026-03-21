@@ -542,7 +542,7 @@ export default function CombatScreen({ gameState, sounds }) {
                 transform: "scaleX(-1)",
                 imageRendering: "pixelated",
                 filter: "drop-shadow(0 0 5px rgba(255,0,0,0.5))",
-                marginLeft: "-30px",
+                marginLeft: "-11px",
                 position: "relative",
                 zIndex: 10,
               }}
@@ -572,7 +572,7 @@ export default function CombatScreen({ gameState, sounds }) {
                 color="enemy"
                 width={270}
                 height={22}
-                style={{ marginRight: "-12px" }}
+                style={{ marginRight: "8px" }}
               />
             </div>
           </div>

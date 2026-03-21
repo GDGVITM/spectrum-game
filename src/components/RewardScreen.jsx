@@ -167,7 +167,7 @@ export default function RewardScreen({ gameState }) {
             fontSize: "10px",
             color: "#ffd56b",
           }}>
-          YOUR REWARD
+          The Katana Awaits its worthy!
         </div>
 
         <div
