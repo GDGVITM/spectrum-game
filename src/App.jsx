@@ -194,7 +194,9 @@ export default function App() {
           {screen === "loading" && (
             <LoadingScreen gameState={gameState} sounds={sounds} />
           )}
-          {screen === "intro" && <IntroScreen gameState={gameState} />}
+          {screen === "intro" && (
+            <IntroScreen gameState={gameState} sounds={sounds} />
+          )}
           {screen === "tutorial" && <TutorialScreen gameState={gameState} />}
           {screen === "combat" && (
             <CombatScreen gameState={gameState} sounds={sounds} />
