@@ -168,17 +168,16 @@ export default function IntroScreen({ gameState, sounds }) {
 
       {subtitleChar > 0 && (
         <div
+          className="pixel-text pixel-text--soft"
           style={{
             position: "absolute",
             bottom: "80px",
             width: "50%",
             left: "25%",
             textAlign: "center",
-            fontFamily: "'Press Start 2P', serif",
             fontSize: "10px",
             lineHeight: "20px",
             color: "#fff",
-            textShadow: "2px 2px #000",
             pointerEvents: "none",
             backgroundColor: "rgba(0,0,0,0.5)",
             padding: "10px",
@@ -190,6 +189,7 @@ export default function IntroScreen({ gameState, sounds }) {
 
       {awaitingInteraction && (
         <div
+          className="pixel-text pixel-text--soft"
           style={{
             position: "absolute",
             bottom: "140px",
@@ -199,7 +199,6 @@ export default function IntroScreen({ gameState, sounds }) {
             backgroundColor: "rgba(0, 0, 0, 0.75)",
             border: "2px solid #fff",
             color: "#fff",
-            fontFamily: "'Press Start 2P', serif",
             fontSize: "9px",
             textAlign: "center",
             zIndex: 100,
@@ -211,6 +210,7 @@ export default function IntroScreen({ gameState, sounds }) {
       {time < INTRO_END_TIME && (
         <div
           onClick={handleSkipIntro}
+          className="pixel-text pixel-text--soft"
           style={{
             position: "absolute",
             bottom: "30px",
@@ -219,8 +219,7 @@ export default function IntroScreen({ gameState, sounds }) {
             backgroundColor: "rgba(0, 0, 0, 0.7)",
             border: "2px solid #fff",
             color: "#fff",
-            fontFamily: "'Noto Sans JP', sans-serif",
-            fontSize: "14px",
+            fontSize: "10px",
             fontWeight: "900",
             cursor: "pointer",
             borderRadius: "4px",

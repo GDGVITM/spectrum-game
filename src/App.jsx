@@ -98,8 +98,11 @@ export default function App() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "monospace",
-          fontSize: "24px",
+          fontFamily: '"Press Start 2P", monospace',
+          fontSize: "16px",
+          textAlign: "center",
+          textTransform: "uppercase",
+          textShadow: "2px 2px 0 #000",
         }}>
         Loading Game Assets...
       </div>
@@ -137,7 +140,9 @@ export default function App() {
           justifyContent: "center",
           alignItems: "center",
           color: "#fff",
-          fontFamily: "'Noto Sans JP', sans-serif",
+          fontFamily: '"Press Start 2P", monospace',
+          textTransform: "uppercase",
+          textShadow: "2px 2px 0 #000",
         }}>
         <img
           src="/assets/phone-rotate.png"
@@ -154,6 +159,8 @@ export default function App() {
             marginBottom: "15px",
             letterSpacing: "2px",
             textAlign: "center",
+            fontSize: "18px",
+            lineHeight: "1.6",
           }}>
           LANDSCAPE REQUIRED
         </h2>
@@ -161,8 +168,10 @@ export default function App() {
           style={{
             textAlign: "center",
             padding: "0 40px",
-            lineHeight: "1.5",
+            lineHeight: "1.8",
             opacity: 0.7,
+            fontSize: "11px",
+            maxWidth: "420px",
           }}>
           Please rotate your device to play SPECTRUM.
         </p>

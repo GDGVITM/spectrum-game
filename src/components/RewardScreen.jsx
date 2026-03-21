@@ -88,6 +88,7 @@ export default function RewardScreen({ gameState }) {
       </div>
 
       <div
+        className="pixel-text pixel-text--soft"
         style={{
           position: "absolute",
           top: "230px",
@@ -95,14 +96,16 @@ export default function RewardScreen({ gameState }) {
           transform: "translateX(-50%)",
           opacity: text2Alpha,
           transition: "opacity 0.2s",
-          fontSize: "24px",
-          fontFamily: "monospace",
+          fontSize: "16px",
           color: "#ffffff",
+          textAlign: "center",
+          width: "80%",
         }}>
         You have defended the realm.
       </div>
 
       <div
+        className="pixel-text pixel-text--soft"
         style={{
           position: "absolute",
           top: "280px",
@@ -110,8 +113,7 @@ export default function RewardScreen({ gameState }) {
           transform: "translateX(-50%)",
           opacity: text3Alpha,
           transition: "opacity 0.2s",
-          fontSize: "16px",
-          fontFamily: "monospace",
+          fontSize: "10px",
           color: "#aaaaaa",
         }}>
         SPECTRUM 2025 - GDG VITM

@@ -51,12 +51,13 @@ export default function LoadingScreen({ gameState, sounds }) {
       </div>
 
       <div
+        className="pixel-text pixel-text--soft"
         style={{
           marginBottom: "40px",
           textAlign: "center",
-          fontSize: "16px",
-          fontFamily: "monospace",
+          fontSize: "12px",
           color: "#ffffff",
+          lineHeight: "1.8",
         }}>
         by GOOGLE DEVELOPER GROUPS VITM
       </div>
@@ -81,10 +82,10 @@ export default function LoadingScreen({ gameState, sounds }) {
       </div>
 
       <div
+        className="pixel-text pixel-text--soft"
         style={{
           marginTop: "20px",
-          fontSize: "14px",
-          fontFamily: "monospace",
+          fontSize: "10px",
           color: "#aaa",
         }}>
         {Math.round(progress)}%

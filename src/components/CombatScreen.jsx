@@ -584,12 +584,11 @@ export default function CombatScreen({ gameState, sounds }) {
                 zIndex: 1,
               }}>
               <div
+                className="pixel-text pixel-text--soft"
                 style={{
                   color: "white",
-                  fontSize: "20px",
-                  fontFamily: "'Noto Sans JP', sans-serif",
+                  fontSize: "12px",
                   fontWeight: "bold",
-                  textShadow: "2px 2px 4px black",
                   marginLeft: "30px",
                   letterSpacing: "1px",
                 }}>
@@ -641,12 +640,11 @@ export default function CombatScreen({ gameState, sounds }) {
                 zIndex: 1,
               }}>
               <div
+                className="pixel-text pixel-text--soft"
                 style={{
                   color: "white",
-                  fontSize: "20px",
-                  fontFamily: "'Noto Sans JP', sans-serif",
+                  fontSize: "12px",
                   fontWeight: "bold",
-                  textShadow: "2px 2px 4px black",
                   marginRight: "40px",
                   letterSpacing: "1px",
                 }}>
@@ -739,7 +737,7 @@ export default function CombatScreen({ gameState, sounds }) {
       {dmgPopup && (
         <div
           key={dmgPopup.id}
-          className="damage-popup"
+          className="damage-popup pixel-text"
           style={{
             position: "absolute",
             left:
@@ -750,7 +748,6 @@ export default function CombatScreen({ gameState, sounds }) {
             color: dmgPopup.side === "enemy" ? "#ff4444" : "#ffaa00",
             fontSize: "40px",
             fontWeight: "900",
-            fontFamily: "'Press Start 2P', monospace",
             textShadow: "0 0 10px currentColor, 2px 2px 0 #000",
             pointerEvents: "none",
             zIndex: 200,
