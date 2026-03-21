@@ -306,7 +306,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
     if (gameState.phase === "readyToAttack" && !busyRef.current) {
       setFreezePlayer(true);
-      const idleDelay = 1500;
+      const idleDelay = rand(5000, 10000);
       idleAttackTimerRef.current = after(idleDelay, () => {
         if (!mounted.current) return;
         if (gameState.phase !== "readyToAttack") return;
