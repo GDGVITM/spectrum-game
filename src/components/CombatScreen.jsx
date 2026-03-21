@@ -66,6 +66,7 @@ export default function CombatScreen({ gameState, sounds }) {
   const busyRef = useRef(false); // prevent double-click during sequence
   const lockPlayerPosRef = useRef(false); // prevent hero position changes during enemy attack
   const idleAttackTimerRef = useRef(null);
+  const consecutivePlayerAttacksRef = useRef(0);
   const cancelMove = useRef(null);
   const timers = useRef([]);
   const mounted = useRef(true);
@@ -126,18 +127,20 @@ export default function CombatScreen({ gameState, sounds }) {
   // ── player-dead watcher ─────────────────────────────────────────────────
   useEffect(() => {
     if (gameState.phase === "playerDead") {
+      clearAll();
+      busyRef.current = false;
       lockPlayerPosRef.current = false;
       setFreezePlayer(false);
       setEnemyPhase("idle");
       setDisplayEnemyPhase("idle");
       setDisplayPlayerPhase("death");
       setScreenDarken(true);
-      after(3000, () => {
+      after(3200, () => {
         gameState.resetGame();
         gameState.setScreen("intro");
       });
     }
-  }, [gameState.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clearAll, gameState.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── helpers to keep refs+state in sync during movement ──────────────────
   const setPlayerX = useCallback((v) => {
@@ -167,6 +170,7 @@ export default function CombatScreen({ gameState, sounds }) {
   const runEnemyAttack = useCallback(() => {
     if (busyRef.current) return;
     busyRef.current = true;
+    consecutivePlayerAttacksRef.current = 0;
     setShowAttackPopup(false);
     gameState.setPhase("enemyAttacking");
 
@@ -241,6 +245,7 @@ export default function CombatScreen({ gameState, sounds }) {
 
         after(1200, () => {
           if (!mounted.current) return;
+          if (gameState.phase === "playerDead") return;
           setDisplayPlayerPhase("idle");
           setFreezePlayer(true);
         });
@@ -301,8 +306,8 @@ export default function CombatScreen({ gameState, sounds }) {
 
     if (gameState.phase === "readyToAttack" && !busyRef.current) {
       setFreezePlayer(true);
-      const randomDelay = rand(5000, 10000); // Random delay between 5-10 seconds
-      idleAttackTimerRef.current = after(randomDelay, () => {
+      const idleDelay = 3000;
+      idleAttackTimerRef.current = after(idleDelay, () => {
         if (!mounted.current) return;
         if (gameState.phase !== "readyToAttack") return;
         runEnemyAttack();
@@ -316,6 +321,7 @@ export default function CombatScreen({ gameState, sounds }) {
   const runTurn = useCallback(() => {
     if (busyRef.current) return;
     busyRef.current = true;
+    consecutivePlayerAttacksRef.current += 1;
     lockPlayerPosRef.current = false;
     setFreezePlayer(false);
     if (idleAttackTimerRef.current) {
@@ -390,9 +396,10 @@ export default function CombatScreen({ gameState, sounds }) {
             return;
           }
 
-          // ── 3. All reset – now ENEMY counter-attacks ─────────────────────
+          // ── 3. Reset and return control to player ───────────────────────
           after(400, () => {
-            // Reset player to base position
+            setEnemyPhase("idle");
+            setDisplayEnemyPhase("idle");
             setPlayerPhase("idle");
             setDisplayPlayerPhase("idle");
 
@@ -413,116 +420,24 @@ export default function CombatScreen({ gameState, sounds }) {
                 setPlayerX(playerHomeX);
                 playerXRef.current = playerHomeX;
                 setPlayerPos(playerHomeX);
-                // Lock player position for entire enemy attack sequence
-                lockPlayerPosRef.current = true;
+                lockPlayerPosRef.current = false;
                 setFreezePlayer(true);
-                after(80, startEnemyTurn);
+                busyRef.current = false;
+                const shouldCounter = consecutivePlayerAttacksRef.current >= 3;
+                if (shouldCounter) {
+                  runEnemyAttack();
+                } else {
+                  gameState.setPhase("readyToAttack");
+                  setShowAttackPopup(true);
+                }
               }
             };
             retId = requestAnimationFrame(retTick);
-
-            const startEnemyTurn = () => {
-              const atk2 = randomAttack();
-              setEnemyPhase("run");
-              setDisplayEnemyPhase("run");
-
-              const enemyStartX = enemyXRef.current;
-              const enemyTargetX = 544; // Mirror distance from player
-              const enemyRunDur = 400; // reduced from 450 for faster response
-              let eRunStart = null;
-              let eRunId;
-              const eRunTick = (ts) => {
-                if (!eRunStart) eRunStart = ts;
-                const t = Math.min(1, (ts - eRunStart) / enemyRunDur);
-                const ease = 1 - Math.pow(1 - t, 3);
-                const nx = enemyStartX + (enemyTargetX - enemyStartX) * ease;
-                enemyXRef.current = nx;
-                setEnemyPos(nx);
-                if (t < 1) eRunId = requestAnimationFrame(eRunTick);
-                else setEnemyX(enemyTargetX);
-              };
-              eRunId = requestAnimationFrame(eRunTick);
-
-              // ── 5. Enemy strike ─────────────────────────────────────────
-              after(enemyRunDur + 40, () => {
-                cancelAnimationFrame(eRunId);
-                setEnemyX(enemyTargetX);
-
-                setEnemyPhase(atk2);
-                setDisplayEnemyPhase(atk2);
-                sounds.swordSlice();
-
-                after(60, () => {
-                  // Slash FX on player
-                  setSlashActive(true);
-                  setFlashWhite(true);
-                  setSlashPos({ x: playerXRef.current + 30, y: 200 });
-                  after(280, () => setSlashActive(false));
-                  after(160, () => setFlashWhite(false));
-
-                  // Show a steady hit pose, then return to a steady idle pose.
-                  setFreezePlayer(true);
-                  setDisplayPlayerPhase("hit");
-                  after(1200, () => {
-                    if (!mounted.current) return;
-                    setDisplayPlayerPhase("idle");
-                    setFreezePlayer(true);
-                  });
-                  setShakeClass("screen-shake");
-                  after(280, () => setShakeClass(""));
-
-                  const eDmg = rand(15, 28);
-                  gameState.doPlayerDamage(eDmg);
-                  showDmg(eDmg, "player");
-                  if (navigator.vibrate) navigator.vibrate(120);
-
-                  after(50, () => {
-                    if (gameState.playerHP <= eDmg) {
-                      gameState.setPhase("playerDead");
-                      return;
-                    }
-
-                    // ── 6. Enemy returns home, round resets ─────────────────
-                    after(380, () => {
-                      setEnemyPhase("idle");
-                      setDisplayEnemyPhase("idle");
-
-                      const eRetStart = enemyXRef.current;
-                      const eHomeX = SPRITE_POSITIONS.ENEMY_HOME_X;
-                      let eRetS = null;
-                      let eRetId;
-                      const eRetTick = (ts) => {
-                        if (!eRetS) eRetS = ts;
-                        const t = Math.min(1, (ts - eRetS) / 320);
-                        const ease = 1 - Math.pow(1 - t, 3);
-                        const nx = eRetStart + (eHomeX - eRetStart) * ease;
-                        enemyXRef.current = nx;
-                        setEnemyPos(nx);
-                        if (t < 1) eRetId = requestAnimationFrame(eRetTick);
-                        else setEnemyX(eHomeX);
-                      };
-                      eRetId = requestAnimationFrame(eRetTick);
-
-                      // Give the player the attack button after everything settles
-                      after(500, () => {
-                        setPlayerPhase("idle");
-                        setDisplayPlayerPhase("idle");
-                        lockPlayerPosRef.current = false; // Unlock player position
-                        setFreezePlayer(false);
-                        busyRef.current = false;
-                        gameState.setPhase("readyToAttack");
-                        setShowAttackPopup(true);
-                      });
-                    });
-                  });
-                });
-              });
-            };
           });
         });
       });
     });
-  }, [gameState, sounds, after, clearAll, setPlayerX, setEnemyX, showDmg]);
+  }, [gameState, sounds, after, clearAll, setPlayerX, setEnemyX, showDmg, runEnemyAttack]);
 
   // ── click handler ────────────────────────────────────────────────────────
   const handleClick = useCallback(() => {
