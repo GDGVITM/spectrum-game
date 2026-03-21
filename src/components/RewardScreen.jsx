@@ -167,7 +167,7 @@ export default function RewardScreen({ gameState }) {
             fontSize: "10px",
             color: "#ffd56b",
           }}>
-          The Katana Awaits its worthy!
+          Katana Awaits its worthy Samurai!
         </div>
 
         <div
