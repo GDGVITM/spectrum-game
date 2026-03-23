@@ -142,18 +142,24 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
         gameState.setPhase(syncedPhase);
       }
 
-      // Sync player HP
-      Object.entries(mpGameState.playerHP).forEach(([playerId, hp]) => {
-        if (playerId === multiplayerConfig.playerId) {
-          if (hp !== gameState.playerHP) {
-            const damage = gameState.playerHP - hp;
-            if (damage > 0) {
-              gameState.doPlayerDamage(damage);
-              showDmg(damage, "player");
-            }
-          }
+      // Sync player HP. Prefer shared HP number from server; keep object fallback for older payloads.
+      const syncedPlayerHP =
+        typeof mpGameState.playerHP === "number"
+          ? mpGameState.playerHP
+          : (() => {
+              const hpValues = Object.values(mpGameState.playerHP || {}).filter(
+                (value) => typeof value === "number",
+              );
+              return hpValues.length > 0 ? Math.min(...hpValues) : undefined;
+            })();
+
+      if (typeof syncedPlayerHP === "number" && syncedPlayerHP !== gameState.playerHP) {
+        const damage = gameState.playerHP - syncedPlayerHP;
+        if (damage > 0) {
+          gameState.doPlayerDamage(damage);
+          showDmg(damage, "player");
         }
-      });
+      }
     }
   }, [multiplayerEnabled, mpGameState]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -172,7 +178,6 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
       });
     }
   }, [activeGameState.phase]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // ── player-dead watcher ─────────────────────────────────────────────────
   useEffect(() => {
     if (activeGameState.phase === "playerDead") {
@@ -219,6 +224,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
   const runEnemyAttack = useCallback(() => {
     if (busyRef.current) return;
     busyRef.current = true;
+    // Reset consecutive hit counter whenever enemy gets to attack
     consecutivePlayerAttacksRef.current = 0;
     setShowAttackPopup(false);
     gameState.setPhase("enemyAttacking");
@@ -302,21 +308,24 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
         after(280, () => setShakeClass(""));
 
         const eDmg = CONFIG.ENEMY_DAMAGE_PER_HIT;
-        if (!multiplayerEnabled) {
+        if (multiplayerEnabled) {
+          // Multiplayer: tell server to apply shared damage when enemy attacks
+          triggerEnemyCounterAttack();
+        } else {
           // Single-player: apply damage locally
           gameState.doPlayerDamage(eDmg);
           showDmg(eDmg, "player");
-        } else {
-          // Multiplayer: ask server to apply and broadcast the same enemy damage to all players
-          triggerEnemyCounterAttack();
         }
-        // In multiplayer, server will broadcast enemy damage to all players
+        // In multiplayer, server will broadcast enemy damage to all players via syncState
         if (navigator.vibrate) navigator.vibrate(120);
 
         after(50, () => {
-          if (activeGameState.playerHP <= eDmg) {
-            gameState.setPhase("playerDead");
-            return;
+          if (!multiplayerEnabled) {
+            // Single-player: determine death locally based on pre-hit HP
+            if (activeGameState.playerHP <= eDmg) {
+              gameState.setPhase("playerDead");
+              return;
+            }
           }
 
           after(380, () => {
@@ -362,7 +371,9 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
 
     if (gameState.phase === "readyToAttack" && !busyRef.current) {
       setFreezePlayer(true);
-      const idleDelay = rand(5000, 10000);
+      // Enemy attacks again after a random interval (1-5 seconds),
+      // independent of how many times the hero has attacked.
+      const idleDelay = rand(1000, 5000);
       idleAttackTimerRef.current = after(idleDelay, () => {
         if (!mounted.current) return;
         if (gameState.phase !== "readyToAttack") return;
@@ -377,6 +388,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
   const runTurn = useCallback(() => {
     if (busyRef.current) return;
     busyRef.current = true;
+    // Track how many times the hero has attacked in a row without
+    // giving the enemy a chance to respond.
     consecutivePlayerAttacksRef.current += 1;
     lockPlayerPosRef.current = false;
     setFreezePlayer(false);
@@ -485,13 +498,16 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                 lockPlayerPosRef.current = false;
                 setFreezePlayer(true);
                 busyRef.current = false;
-                const shouldCounter = consecutivePlayerAttacksRef.current >= 3;
-                if (shouldCounter) {
-                  runEnemyAttack();
-                } else {
-                  gameState.setPhase("readyToAttack");
-                  setShowAttackPopup(true);
-                }
+                  // If the hero has attacked several times in a row
+                  // without the enemy hitting back, force an immediate
+                  // counter attack instead of letting them spam forever.
+                  const shouldForceCounter = consecutivePlayerAttacksRef.current >= 3;
+                  if (shouldForceCounter) {
+                    runEnemyAttack();
+                  } else {
+                    gameState.setPhase("readyToAttack");
+                    setShowAttackPopup(true);
+                  }
               }
             };
             retId = requestAnimationFrame(retTick);
