@@ -13,39 +13,27 @@ const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const ATTACKS = ["attack1", "attack2", "attack3"];
 const randomAttack = () => ATTACKS[rand(0, 2)];
 
-// Smooth linear move using rAF. Returns a cancel fn.
-function smoothMove(getX, setX, targetX, durationMs, onDone) {
-  let start = null;
-  let id;
-  const tick = (ts) => {
-    if (!start) start = ts;
-    const t = Math.min(1, (ts - start) / durationMs);
-    // ease-out cubic
-    const ease = 1 - Math.pow(1 - t, 3);
-    setX(getX() + (targetX - getX()) * ease);
-    if (t < 1) {
-      id = requestAnimationFrame(tick);
-    } else {
-      setX(targetX);
-      onDone?.();
-    }
-  };
-  id = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(id);
-}
-
 // ─── component ──────────────────────────────────────────────────────────────
-export default function CombatScreen({ gameState, sounds, multiplayerConfig = null }) {
+export default function CombatScreen({
+  gameState,
+  sounds,
+  multiplayerConfig = null,
+}) {
   // Multiplayer support
   const multiplayerEnabled = !!multiplayerConfig;
-  const { gameState: mpGameState, sendAttack, triggerEnemyCounterAttack } = useMultiplayerGame(
+  const {
+    gameState: mpGameState,
+    sendAttack,
+    triggerEnemyCounterAttack,
+  } = useMultiplayerGame(
     multiplayerConfig?.sessionId,
     multiplayerConfig?.playerId,
-    multiplayerEnabled
+    multiplayerEnabled,
   );
 
   // Use multiplayer state if available, otherwise use local state
-  const activeGameState = multiplayerEnabled && mpGameState ? mpGameState : gameState;
+  const activeGameState =
+    multiplayerEnabled && mpGameState ? mpGameState : gameState;
 
   // Sprite positions stored as refs for smooth rAF movement (no re-render per frame)
   const playerXRef = useRef(SPRITE_POSITIONS.PLAYER_HOME_X);
@@ -56,8 +44,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
   const [enemyPos, setEnemyPos] = useState(SPRITE_POSITIONS.ENEMY_HOME_X);
 
   // Sprite animation phases
-  const [playerPhase, setPlayerPhase] = useState("idle");
-  const [enemyPhase, setEnemyPhase] = useState("idle");
+  const [, setPlayerPhase] = useState("idle");
+  const [, setEnemyPhase] = useState("idle");
 
   // Visual FX
   const [slashActive, setSlashActive] = useState(false);
@@ -137,7 +125,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
       }
 
       // Sync phase. Some older server states may still send "combat".
-      const syncedPhase = mpGameState.phase === "combat" ? "readyToAttack" : mpGameState.phase;
+      const syncedPhase =
+        mpGameState.phase === "combat" ? "readyToAttack" : mpGameState.phase;
       if (syncedPhase !== gameState.phase) {
         gameState.setPhase(syncedPhase);
       }
@@ -153,7 +142,10 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
               return hpValues.length > 0 ? Math.min(...hpValues) : undefined;
             })();
 
-      if (typeof syncedPlayerHP === "number" && syncedPlayerHP !== gameState.playerHP) {
+      if (
+        typeof syncedPlayerHP === "number" &&
+        syncedPlayerHP !== gameState.playerHP
+      ) {
         const damage = gameState.playerHP - syncedPlayerHP;
         if (damage > 0) {
           gameState.doPlayerDamage(damage);
@@ -162,6 +154,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
       }
     }
   }, [multiplayerEnabled, mpGameState]); // eslint-disable-line react-hooks/exhaustive-deps
+  /* eslint-disable react-hooks/set-state-in-effect */
 
   // ── enemy-death watcher ──────────────────────────────────────────────────
   useEffect(() => {
@@ -243,7 +236,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
     setDisplayEnemyPhase("run");
 
     const enemyStartX = enemyXRef.current;
-    const enemyTargetX = 400; // Mirror distance from player
+    const enemyTargetX = SPRITE_POSITIONS.ENEMY_ATTACK_X;
     const enemyRunDur = 150;
     let eRunStart = null;
     let eRunId;
@@ -282,7 +275,6 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
         const knockbackDist = 40;
         const knockbackDur = 150;
         let kbStart = null;
-        let kbId;
         const kbTick = (ts) => {
           if (!kbStart) kbStart = ts;
           const t = Math.min(1, (ts - kbStart) / knockbackDur);
@@ -290,13 +282,13 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
           const kbX = hitStartX - knockbackDist * ease;
           playerXRef.current = kbX;
           setPlayerPos(kbX);
-          if (t < 1) kbId = requestAnimationFrame(kbTick);
+          if (t < 1) requestAnimationFrame(kbTick);
           else {
             playerXRef.current = hitStartX;
             setPlayerPos(hitStartX);
           }
         };
-        kbId = requestAnimationFrame(kbTick);
+        requestAnimationFrame(kbTick);
 
         after(1200, () => {
           if (!mounted.current) return;
@@ -335,7 +327,6 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
             const eRetStart = enemyXRef.current;
             const eHomeX = SPRITE_POSITIONS.ENEMY_HOME_X;
             let eRetS = null;
-            let eRetId;
             const eRetTick = (ts) => {
               if (!eRetS) eRetS = ts;
               const t = Math.min(1, (ts - eRetS) / 320);
@@ -343,10 +334,10 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
               const nx = eRetStart + (eHomeX - eRetStart) * ease;
               enemyXRef.current = nx;
               setEnemyPos(nx);
-              if (t < 1) eRetId = requestAnimationFrame(eRetTick);
+              if (t < 1) requestAnimationFrame(eRetTick);
               else setEnemyX(eHomeX);
             };
-            eRetId = requestAnimationFrame(eRetTick);
+            requestAnimationFrame(eRetTick);
 
             after(500, () => {
               setPlayerPhase("idle");
@@ -361,7 +352,16 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
         });
       });
     });
-  }, [after, gameState, multiplayerEnabled, setEnemyX, setPlayerX, showDmg, sounds, triggerEnemyCounterAttack]);
+  }, [
+    after,
+    gameState,
+    multiplayerEnabled,
+    setEnemyX,
+    setPlayerX,
+    showDmg,
+    sounds,
+    triggerEnemyCounterAttack,
+  ]);
 
   useEffect(() => {
     if (idleAttackTimerRef.current) {
@@ -381,6 +381,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
       });
     }
   }, [after, gameState.phase, runEnemyAttack]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ─────────────────────────────────────────────────────────────────────────
   //  FULL TURN SEQUENCE  (called once per player click)
@@ -407,7 +408,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
     setEnemyPhase("protect");
 
     const startX = playerXRef.current;
-    const targetX = 730; // Move toward center
+    const targetX = SPRITE_POSITIONS.PLAYER_ATTACK_X;
     const runDur = 170; // ms
 
     let moveStart = null;
@@ -481,7 +482,6 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
             const playerReturnStart = playerXRef.current;
             const playerHomeX = SPRITE_POSITIONS.PLAYER_HOME_X;
             let retStart = null;
-            let retId;
             const retTick = (ts) => {
               if (!retStart) retStart = ts;
               const t = Math.min(1, (ts - retStart) / 300);
@@ -490,7 +490,7 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                 playerReturnStart + (playerHomeX - playerReturnStart) * ease;
               playerXRef.current = nx;
               setPlayerPos(nx);
-              if (t < 1) retId = requestAnimationFrame(retTick);
+              if (t < 1) requestAnimationFrame(retTick);
               else {
                 setPlayerX(playerHomeX);
                 playerXRef.current = playerHomeX;
@@ -498,24 +498,25 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                 lockPlayerPosRef.current = false;
                 setFreezePlayer(true);
                 busyRef.current = false;
-                  // If the hero has attacked several times in a row
-                  // without the enemy hitting back, force an immediate
-                  // counter attack instead of letting them spam forever.
-                  const shouldForceCounter = consecutivePlayerAttacksRef.current >= 3;
-                  if (shouldForceCounter) {
-                    runEnemyAttack();
-                  } else {
-                    gameState.setPhase("readyToAttack");
-                    setShowAttackPopup(true);
-                  }
+                // If the hero has attacked several times in a row
+                // without the enemy hitting back, force an immediate
+                // counter attack instead of letting them spam forever.
+                const shouldForceCounter =
+                  consecutivePlayerAttacksRef.current >= 3;
+                if (shouldForceCounter) {
+                  runEnemyAttack();
+                } else {
+                  gameState.setPhase("readyToAttack");
+                  setShowAttackPopup(true);
+                }
               }
             };
-            retId = requestAnimationFrame(retTick);
+            requestAnimationFrame(retTick);
           });
         });
       });
     });
-  }, [gameState, sounds, after, clearAll, setPlayerX, setEnemyX, showDmg, runEnemyAttack]);
+  }, [gameState, sounds, after, clearAll, setPlayerX, showDmg, runEnemyAttack]);
 
   // ── click handler ────────────────────────────────────────────────────────
   const handleClick = useCallback(() => {
@@ -534,9 +535,14 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
         height: "100%",
         backgroundColor: "#0d1117",
         overflow: "hidden",
-        cursor: activeGameState.phase === "readyToAttack" ? "pointer" : "default",
+        contain: "layout paint",
+        cursor:
+          activeGameState.phase === "readyToAttack" ? "pointer" : "default",
+        touchAction: "manipulation",
+        userSelect: "none",
       }}
-      onClick={handleClick}>
+      onClick={handleClick}
+    >
       <Background />
 
       {/* Shake animation is applied to container via className */}
@@ -553,12 +559,13 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
               display: "flex",
               alignItems: "center",
               zIndex: 100,
-            }}>
+            }}
+          >
             <div
               style={{
                 width: "128px",
                 height: "128px",
-                backgroundImage: "url('/assets/hero-icon.png')",
+                backgroundImage: "url('/assets/hero-icon.webp')",
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center",
@@ -575,7 +582,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                 flexDirection: "column",
                 gap: "2px",
                 zIndex: 1,
-              }}>
+              }}
+            >
               <div
                 className="pixel-text pixel-text--soft"
                 style={{
@@ -584,7 +592,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                   fontWeight: "bold",
                   marginLeft: "30px",
                   letterSpacing: "1px",
-                }}>
+                }}
+              >
                 THE GHOST (YOU)
               </div>
               <HealthBar
@@ -608,12 +617,13 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
               flexDirection: "row-reverse",
               alignItems: "center",
               zIndex: 100,
-            }}>
+            }}
+          >
             <div
               style={{
                 width: "128px",
                 height: "128px",
-                backgroundImage: "url('/assets/enemy-icon.png')",
+                backgroundImage: "url('/assets/enemy-icon.webp')",
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center",
@@ -632,7 +642,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                 gap: "2px",
                 alignItems: "flex-end",
                 zIndex: 1,
-              }}>
+              }}
+            >
               <div
                 className="pixel-text pixel-text--soft"
                 style={{
@@ -641,7 +652,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
                   fontWeight: "bold",
                   marginRight: "40px",
                   letterSpacing: "1px",
-                }}>
+                }}
+              >
                 KHOTUN KHAN
               </div>
               <HealthBar
@@ -676,7 +688,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
           filter: isDead ? "grayscale(1)" : "none",
           transition: "filter 0.6s ease-out",
           willChange: "filter",
-        }}>
+        }}
+      >
         <EnemySprite
           x={enemyPos}
           y={SPRITE_POSITIONS.SPRITE_Y}
@@ -747,7 +760,8 @@ export default function CombatScreen({ gameState, sounds, multiplayerConfig = nu
             pointerEvents: "none",
             zIndex: 200,
             animation: "dmgFloat 0.9s ease-out forwards",
-          }}>
+          }}
+        >
           -{dmgPopup.value}
         </div>
       )}
