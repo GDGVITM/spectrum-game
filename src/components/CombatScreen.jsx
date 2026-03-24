@@ -12,27 +12,6 @@ const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 const ATTACKS = ["attack1", "attack2", "attack3"];
 const randomAttack = () => ATTACKS[rand(0, 2)];
 
-// Smooth linear move using rAF. Returns a cancel fn.
-function smoothMove(getX, setX, targetX, durationMs, onDone) {
-  let start = null;
-  let id;
-  const tick = (ts) => {
-    if (!start) start = ts;
-    const t = Math.min(1, (ts - start) / durationMs);
-    // ease-out cubic
-    const ease = 1 - Math.pow(1 - t, 3);
-    setX(getX() + (targetX - getX()) * ease);
-    if (t < 1) {
-      id = requestAnimationFrame(tick);
-    } else {
-      setX(targetX);
-      onDone?.();
-    }
-  };
-  id = requestAnimationFrame(tick);
-  return () => cancelAnimationFrame(id);
-}
-
 // ─── component ──────────────────────────────────────────────────────────────
 export default function CombatScreen({ gameState, sounds }) {
   // Sprite positions stored as refs for smooth rAF movement (no re-render per frame)
@@ -44,8 +23,8 @@ export default function CombatScreen({ gameState, sounds }) {
   const [enemyPos, setEnemyPos] = useState(SPRITE_POSITIONS.ENEMY_HOME_X);
 
   // Sprite animation phases
-  const [playerPhase, setPlayerPhase] = useState("idle");
-  const [enemyPhase, setEnemyPhase] = useState("idle");
+  const [, setPlayerPhase] = useState("idle");
+  const [, setEnemyPhase] = useState("idle");
 
   // Visual FX
   const [slashActive, setSlashActive] = useState(false);
@@ -108,6 +87,7 @@ export default function CombatScreen({ gameState, sounds }) {
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   // ── enemy-death watcher ──────────────────────────────────────────────────
   useEffect(() => {
     if (gameState.phase === "death") {
@@ -188,7 +168,7 @@ export default function CombatScreen({ gameState, sounds }) {
     setDisplayEnemyPhase("run");
 
     const enemyStartX = enemyXRef.current;
-    const enemyTargetX = 400; // Mirror distance from player
+    const enemyTargetX = SPRITE_POSITIONS.ENEMY_ATTACK_X;
     const enemyRunDur = 150;
     let eRunStart = null;
     let eRunId;
@@ -227,7 +207,6 @@ export default function CombatScreen({ gameState, sounds }) {
         const knockbackDist = 40;
         const knockbackDur = 150;
         let kbStart = null;
-        let kbId;
         const kbTick = (ts) => {
           if (!kbStart) kbStart = ts;
           const t = Math.min(1, (ts - kbStart) / knockbackDur);
@@ -235,13 +214,13 @@ export default function CombatScreen({ gameState, sounds }) {
           const kbX = hitStartX - knockbackDist * ease;
           playerXRef.current = kbX;
           setPlayerPos(kbX);
-          if (t < 1) kbId = requestAnimationFrame(kbTick);
+          if (t < 1) requestAnimationFrame(kbTick);
           else {
             playerXRef.current = hitStartX;
             setPlayerPos(hitStartX);
           }
         };
-        kbId = requestAnimationFrame(kbTick);
+        requestAnimationFrame(kbTick);
 
         after(1200, () => {
           if (!mounted.current) return;
@@ -270,7 +249,6 @@ export default function CombatScreen({ gameState, sounds }) {
             const eRetStart = enemyXRef.current;
             const eHomeX = SPRITE_POSITIONS.ENEMY_HOME_X;
             let eRetS = null;
-            let eRetId;
             const eRetTick = (ts) => {
               if (!eRetS) eRetS = ts;
               const t = Math.min(1, (ts - eRetS) / 320);
@@ -278,10 +256,10 @@ export default function CombatScreen({ gameState, sounds }) {
               const nx = eRetStart + (eHomeX - eRetStart) * ease;
               enemyXRef.current = nx;
               setEnemyPos(nx);
-              if (t < 1) eRetId = requestAnimationFrame(eRetTick);
+              if (t < 1) requestAnimationFrame(eRetTick);
               else setEnemyX(eHomeX);
             };
-            eRetId = requestAnimationFrame(eRetTick);
+            requestAnimationFrame(eRetTick);
 
             after(500, () => {
               setPlayerPhase("idle");
@@ -314,6 +292,7 @@ export default function CombatScreen({ gameState, sounds }) {
       });
     }
   }, [after, gameState.phase, runEnemyAttack]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // ─────────────────────────────────────────────────────────────────────────
   //  FULL TURN SEQUENCE  (called once per player click)
@@ -338,7 +317,7 @@ export default function CombatScreen({ gameState, sounds }) {
     setEnemyPhase("protect");
 
     const startX = playerXRef.current;
-    const targetX = 730; // Move toward center
+    const targetX = SPRITE_POSITIONS.PLAYER_ATTACK_X;
     const runDur = 170; // ms
 
     let moveStart = null;
@@ -406,7 +385,6 @@ export default function CombatScreen({ gameState, sounds }) {
             const playerReturnStart = playerXRef.current;
             const playerHomeX = SPRITE_POSITIONS.PLAYER_HOME_X;
             let retStart = null;
-            let retId;
             const retTick = (ts) => {
               if (!retStart) retStart = ts;
               const t = Math.min(1, (ts - retStart) / 300);
@@ -415,7 +393,7 @@ export default function CombatScreen({ gameState, sounds }) {
                 playerReturnStart + (playerHomeX - playerReturnStart) * ease;
               playerXRef.current = nx;
               setPlayerPos(nx);
-              if (t < 1) retId = requestAnimationFrame(retTick);
+              if (t < 1) requestAnimationFrame(retTick);
               else {
                 setPlayerX(playerHomeX);
                 playerXRef.current = playerHomeX;
@@ -432,12 +410,12 @@ export default function CombatScreen({ gameState, sounds }) {
                 }
               }
             };
-            retId = requestAnimationFrame(retTick);
+            requestAnimationFrame(retTick);
           });
         });
       });
     });
-  }, [gameState, sounds, after, clearAll, setPlayerX, setEnemyX, showDmg, runEnemyAttack]);
+  }, [gameState, sounds, after, clearAll, setPlayerX, showDmg, runEnemyAttack]);
 
   // ── click handler ────────────────────────────────────────────────────────
   const handleClick = useCallback(() => {
@@ -456,7 +434,10 @@ export default function CombatScreen({ gameState, sounds }) {
         height: "100%",
         backgroundColor: "#0d1117",
         overflow: "hidden",
+        contain: "layout paint",
         cursor: gameState.phase === "readyToAttack" ? "pointer" : "default",
+        touchAction: "manipulation",
+        userSelect: "none",
       }}
       onClick={handleClick}>
       <Background />

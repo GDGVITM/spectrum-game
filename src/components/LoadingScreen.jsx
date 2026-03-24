@@ -1,37 +1,30 @@
-import React, { useRef, useEffect, useState } from "react";
-import { wait } from "../hooks/useAnimationLoop.js";
+import React, { useRef, useEffect } from "react";
 import "../game.css";
 
-export default function LoadingScreen({ gameState, sounds }) {
-  const [progress, setProgress] = useState(0);
-  const progressRef = useRef(0);
+export default function LoadingScreen({
+  gameState,
+  sounds,
+  loadingProgress = 0,
+  assetsReady = false,
+}) {
   const completedRef = useRef(false);
+  const progress = assetsReady ? 100 : loadingProgress;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        const newProgress = Math.min(100, p + 0.5);
-        progressRef.current = newProgress;
+    if (!assetsReady || completedRef.current) return undefined;
 
-        if (newProgress >= 100 && !completedRef.current) {
-          completedRef.current = true;
-          clearInterval(interval);
-          wait(100).then(() => {
-            try {
-              sounds.startAmbientWind();
-            } catch (e) {
-              console.warn("Audio start failed", e);
-            }
-            gameState.setScreen("intro");
-          });
-        }
+    completedRef.current = true;
+    const timeoutId = window.setTimeout(() => {
+      try {
+        sounds.startAmbientWind();
+      } catch (e) {
+        console.warn("Audio start failed", e);
+      }
+      gameState.setScreen("intro");
+    }, 250);
 
-        return newProgress;
-      });
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, [gameState, sounds]);
+    return () => window.clearTimeout(timeoutId);
+  }, [assetsReady, gameState, sounds]);
 
   return (
     <div
