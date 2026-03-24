@@ -7,6 +7,8 @@ export const CONFIG = {
   ENEMY_MAX_HP: 1200,
   PLAYER_DAMAGE_PER_HIT: 10,
   ENEMY_DAMAGE_PER_HIT: 7,
+  OFFLINE_PLAYER_DAMAGE_PER_HIT: 38,
+  OFFLINE_ENEMY_DAMAGE_PER_HIT: 45,
   FRAMES_PER_SECOND: 12, // For custom pixel animations
 };
 
@@ -23,9 +25,9 @@ export const SPRITE_POSITIONS = {
   PLAYER_ATTACK_X:
     CONFIG.STAGE_WIDTH - SPRITE_DIMENSIONS.HALF_WIDTH - DUEL_STEP_IN,
   ENEMY_ATTACK_X: SPRITE_DIMENSIONS.HALF_WIDTH + DUEL_STEP_IN,
-  SPRITE_Y:
-    CONFIG.STAGE_HEIGHT - SPRITE_DIMENSIONS.HALF_HEIGHT - FLOOR_MARGIN,
+  SPRITE_Y: CONFIG.STAGE_HEIGHT - SPRITE_DIMENSIONS.HALF_HEIGHT - FLOOR_MARGIN,
 };
 
-// At fast play, your loop lands roughly 3 player hits every ~4.3s, so 1200 HP with 10 damage/hit is close to ~2.8 to 3.1 minutes.
-// Enemy hits about once every 3 player attacks, so 38 damage/hit makes the fight threatening but usually survivable with 2000 player HP.
+// Online combat stays conservative because the server is the source of truth.
+// Offline combat uses higher local-only damage so the fallback fight lands near ~45s
+// instead of several minutes while still giving the enemy enough damage to feel active.

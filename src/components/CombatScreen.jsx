@@ -25,15 +25,30 @@ export default function CombatScreen({
     gameState: mpGameState,
     sendAttack,
     triggerEnemyCounterAttack,
+    hasSyncedState,
+    hasConnectionError,
+    isConnected,
+    lastSyncAt,
   } = useMultiplayerGame(
     multiplayerConfig?.sessionId,
     multiplayerConfig?.playerId,
     multiplayerEnabled,
   );
+  const [localFallbackForced, setLocalFallbackForced] = useState(false);
+  const lastSyncAtRef = useRef(null);
+  const multiplayerReady =
+    multiplayerEnabled && isConnected && hasSyncedState && !localFallbackForced;
 
   // Use multiplayer state if available, otherwise use local state
   const activeGameState =
-    multiplayerEnabled && mpGameState ? mpGameState : gameState;
+    multiplayerReady && mpGameState ? mpGameState : gameState;
+  const offlineMode = !multiplayerReady;
+  const playerDamagePerHit = offlineMode
+    ? CONFIG.OFFLINE_PLAYER_DAMAGE_PER_HIT
+    : CONFIG.PLAYER_DAMAGE_PER_HIT;
+  const enemyDamagePerHit = offlineMode
+    ? CONFIG.OFFLINE_ENEMY_DAMAGE_PER_HIT
+    : CONFIG.ENEMY_DAMAGE_PER_HIT;
 
   // Sprite positions stored as refs for smooth rAF movement (no re-render per frame)
   const playerXRef = useRef(SPRITE_POSITIONS.PLAYER_HOME_X);
@@ -71,6 +86,15 @@ export default function CombatScreen({
   const timers = useRef([]);
   const mounted = useRef(true);
 
+  const forceLocalFallback = useCallback((reason) => {
+    setLocalFallbackForced((wasForced) => {
+      if (!wasForced) {
+        console.warn(`Falling back to local combat: ${reason}`);
+      }
+      return true;
+    });
+  }, []);
+
   // ── safe timer helpers ───────────────────────────────────────────────────
   const after = useCallback((ms, fn) => {
     const id = setTimeout(() => {
@@ -89,6 +113,35 @@ export default function CombatScreen({
       idleAttackTimerRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    lastSyncAtRef.current = lastSyncAt;
+  }, [lastSyncAt]);
+
+  useEffect(() => {
+    setLocalFallbackForced(false);
+  }, [multiplayerConfig?.playerId, multiplayerConfig?.sessionId]);
+
+  useEffect(() => {
+    if (!multiplayerEnabled || localFallbackForced) return undefined;
+    if (hasConnectionError) {
+      forceLocalFallback("server connection failed");
+      return undefined;
+    }
+    if (hasSyncedState) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      forceLocalFallback("server did not respond in time");
+    }, 1800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    forceLocalFallback,
+    hasConnectionError,
+    hasSyncedState,
+    localFallbackForced,
+    multiplayerEnabled,
+  ]);
 
   // ── mount / unmount ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -110,7 +163,7 @@ export default function CombatScreen({
 
   // ── multiplayer state sync ───────────────────────────────────────────────
   useEffect(() => {
-    if (multiplayerEnabled && mpGameState) {
+    if (multiplayerReady && mpGameState) {
       // Sync enemy HP from multiplayer
       const currentEnemyHP = gameState.enemyHP;
       if (mpGameState.enemyHP !== currentEnemyHP) {
@@ -153,7 +206,7 @@ export default function CombatScreen({
         }
       }
     }
-  }, [multiplayerEnabled, mpGameState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [multiplayerReady, mpGameState]); // eslint-disable-line react-hooks/exhaustive-deps
   /* eslint-disable react-hooks/set-state-in-effect */
 
   // ── enemy-death watcher ──────────────────────────────────────────────────
@@ -211,6 +264,22 @@ export default function CombatScreen({
       after(900, () => setDmgPopup(null));
     },
     [after],
+  );
+
+  const applyLocalEnemyDamage = useCallback(
+    (value) => {
+      gameState.doDamage(value);
+      showDmg(value, "enemy");
+    },
+    [gameState, showDmg],
+  );
+
+  const applyLocalPlayerDamage = useCallback(
+    (value) => {
+      gameState.doPlayerDamage(value);
+      showDmg(value, "player");
+    },
+    [gameState, showDmg],
   );
 
   // ── enemy auto-attack when player stays idle ─────────────────────────────
@@ -299,20 +368,28 @@ export default function CombatScreen({
         setShakeClass("screen-shake");
         after(280, () => setShakeClass(""));
 
-        const eDmg = CONFIG.ENEMY_DAMAGE_PER_HIT;
-        if (multiplayerEnabled) {
+        const eDmg = enemyDamagePerHit;
+        if (multiplayerReady) {
           // Multiplayer: tell server to apply shared damage when enemy attacks
+          const sentAt = Date.now();
           triggerEnemyCounterAttack();
+          after(900, () => {
+            if ((lastSyncAtRef.current ?? 0) > sentAt) return;
+            forceLocalFallback("enemy counter attack timed out");
+            applyLocalPlayerDamage(eDmg);
+          });
         } else {
+          if (multiplayerEnabled) {
+            forceLocalFallback("enemy attack started before server sync");
+          }
           // Single-player: apply damage locally
-          gameState.doPlayerDamage(eDmg);
-          showDmg(eDmg, "player");
+          applyLocalPlayerDamage(eDmg);
         }
         // In multiplayer, server will broadcast enemy damage to all players via syncState
         if (navigator.vibrate) navigator.vibrate(120);
 
         after(50, () => {
-          if (!multiplayerEnabled) {
+          if (!multiplayerReady) {
             // Single-player: determine death locally based on pre-hit HP
             if (activeGameState.playerHP <= eDmg) {
               gameState.setPhase("playerDead");
@@ -354,11 +431,14 @@ export default function CombatScreen({
     });
   }, [
     after,
+    applyLocalPlayerDamage,
+    activeGameState.playerHP,
+    enemyDamagePerHit,
+    forceLocalFallback,
     gameState,
-    multiplayerEnabled,
+    multiplayerReady,
     setEnemyX,
     setPlayerX,
-    showDmg,
     sounds,
     triggerEnemyCounterAttack,
   ]);
@@ -451,14 +531,22 @@ export default function CombatScreen({
         after(300, () => setShakeClass(""));
 
         // Deal damage
-        const dmg = CONFIG.PLAYER_DAMAGE_PER_HIT;
-        if (multiplayerEnabled) {
+        const dmg = playerDamagePerHit;
+        if (multiplayerReady) {
           // Send attack to server
+          const sentAt = Date.now();
           sendAttack();
+          after(900, () => {
+            if ((lastSyncAtRef.current ?? 0) > sentAt) return;
+            forceLocalFallback("player attack timed out");
+            applyLocalEnemyDamage(dmg);
+          });
         } else {
+          if (multiplayerEnabled) {
+            forceLocalFallback("player attack started before server sync");
+          }
           // Single-player: apply damage locally
-          gameState.doDamage(dmg);
-          showDmg(dmg, "enemy");
+          applyLocalEnemyDamage(dmg);
         }
         if (navigator.vibrate) navigator.vibrate(180);
         sounds.enemyHit();
@@ -516,7 +604,20 @@ export default function CombatScreen({
         });
       });
     });
-  }, [gameState, sounds, after, clearAll, setPlayerX, showDmg, runEnemyAttack]);
+  }, [
+    activeGameState.enemyHP,
+    after,
+    applyLocalEnemyDamage,
+    clearAll,
+    forceLocalFallback,
+    gameState,
+    multiplayerReady,
+    playerDamagePerHit,
+    runEnemyAttack,
+    sendAttack,
+    setPlayerX,
+    sounds,
+  ]);
 
   // ── click handler ────────────────────────────────────────────────────────
   const handleClick = useCallback(() => {
